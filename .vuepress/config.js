@@ -4,6 +4,7 @@ module.exports = {
   title: 'markdown-it 中文文档',
   description: '',
   themeConfig: {
+    repo: 'docschina/markdown-it-docs',
     nav: [
       {key: '/architecture.md', label: '架构', link: '/architecture.md', text: '架构'},
       {key: '/development.md', label: '开发者建议', link: '/development.md', text: '开发者建议'}, {
