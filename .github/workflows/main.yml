@@ -2,14 +2,11 @@
 
 name: CI
 
-# Controls when the action will run. 
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
 on:
-  # Triggers the workflow on push or pull request events but only for the cn branch
   push:
-    branches: [ cn ]
-
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
+    branches: [main]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -23,26 +20,33 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      - name: Build and Deploy
-        uses: JamesIves/github-pages-deploy-action@master
-        env:
-          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-          BASE_BRANCH: cn-v7
-          BRANCH: gh-pages-v7
-          FOLDER: website/build/babel
-          BUILD_SCRIPT: yarn && yarn bootstrap
+      - name: Cache NPM dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+      - name: Install
+        run: |
+          npm i
+      - name: Build
+        run: |
+          npm run build
       - name: Check Build
         run: |
           sudo -i
-          sudo chown -R $USER ./website/build/babel
-
+          sudo chown -R $USER ./dist
       - name: Docschina Github Action
         id: deployStatic
         uses: lcxfs1991/docschina-actions@master
         with:
-          skipFiles: ${{ secrets.SKIPFILES }}
+          skipFiles: ${{ secrets.SKIP_FILES }}
           secretId: ${{ secrets.SECRET_ID }}
           secretKey: ${{ secrets.SECRET_KEY }}
-          staticSrcPath: ./website/build/babel
+          staticSrcPath: ./dist
           bucket: ${{ secrets.BUCKET }}
           region: ${{ secrets.REGION }}
+          forceFiles: ${{ secrets.FORCE_FILES }}  
